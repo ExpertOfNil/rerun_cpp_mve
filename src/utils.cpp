@@ -1,5 +1,8 @@
 #include "utils.hpp"
 
+#include <fstream>
+#include <sstream>
+
 void help() {
     printf(
         "Usage: measure [OPTIONS]\n"
@@ -47,7 +50,8 @@ std::pair<Cli, RETURN_STATUS> parseArgs(int argc, char** argv) {
         if (std::string(argv[i]) == "--viewer_addr" && i + 1 < (size_t)argc) {
             cli.viewer_addr = argv[i + 1];
             printf(
-                "CLI OPTION SET: Rerun viewer IP:PORT = %s\n", cli.viewer_addr.c_str()
+                "CLI OPTION SET: Rerun viewer IP:PORT = %s\n",
+                cli.viewer_addr.c_str()
             );
             continue;
         }
@@ -63,6 +67,12 @@ std::pair<Cli, RETURN_STATUS> parseArgs(int argc, char** argv) {
 }
 
 void background_image_loader(ImageBuffer* buf, uint32_t loader_idx) {
+    std::stringstream fname;
+    fname << "loader_" << loader_idx << ".csv";
+    std::fstream loader_file(
+        fname.str(), std::ios::in | std::ios::out | std::ios::trunc
+    );
+    loader_file << "path_name,path_idx,tail_idx,loaded_count\n";
     while (!buf->shutdown) {
         uint32_t loaded_count = buf->loaded_count.load();
         uint32_t active_loader_idx = buf->active_loader_idx.load();
@@ -70,12 +80,15 @@ void background_image_loader(ImageBuffer* buf, uint32_t loader_idx) {
             active_loader_idx == loader_idx) {
             uint32_t tail_idx = buf->tail_idx.load();
             uint32_t path_idx = buf->path_idx.load();
+            uint32_t loaded_count = buf->path_idx.load();
 
-            buf->images[buf->tail_idx] =
-                cv::imread(buf->image_paths[buf->path_idx]);
+            fs::path image_path = buf->image_paths[buf->path_idx];
+            buf->images[tail_idx] = cv::imread(image_path);
             buf->path_idx.store((path_idx + 1) % buf->image_paths.size());
             buf->tail_idx.store((tail_idx + 1) % buf->buffer_size);
             buf->loaded_count.fetch_add(1);
+            loader_file << image_path << "," << path_idx << "," << tail_idx
+                        << "," << loaded_count << "\n";
         }
     }
 }
@@ -108,6 +121,7 @@ RETURN_STATUS ImageBuffer_Init(
             buffer_size
         );
     }
+    std::sort(buffer->image_paths.begin(), buffer->image_paths.end());
 
     buffer->images.resize(buffer_size);
     buffer->buffer_size = buffer_size;

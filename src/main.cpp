@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
     }
 
     ImageBuffer buf = {};
-    if (ImageBuffer_Init(&buf, "doom_gif", 20, 4) != OK) {
+    if (ImageBuffer_Init(&buf, "doom_gif", 20, 1) != OK) {
         return EXIT_FAILURE;
     }
     ImageBuffer_Stats(buf);
@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
         return 1;
     }
     cv::Mat img(buf.images[0].rows, buf.images[0].cols, buf.images[0].type());
-    while (true) {
+    while(true) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
         ImageBuffer_NextImage(buf, img);
