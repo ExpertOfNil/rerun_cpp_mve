@@ -101,12 +101,13 @@ void rr_log_axis_system(
     );
 }
 
+#ifndef SKIP_IMG_LOG
 void rr_log_mat_image(
     std::string path,
     cv::Mat img,
     rerun::ColorModel color_model,
     const rerun::RecordingStream& rec,
-    std::string tag = ""
+    std::string tag
 ) {
     if (!tag.empty()) {
         cv::putText(
@@ -124,6 +125,7 @@ void rr_log_mat_image(
         )
     );
 }
+#endif
 
 void rr_log_keypoints_image(
     std::string path,

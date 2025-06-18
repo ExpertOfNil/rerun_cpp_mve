@@ -31,13 +31,23 @@ void rr_log_axis_system(
     std::string path, float scale, const rerun::RecordingStream& rec
 );
 
+#ifdef SKIP_IMG_LOG
+inline void rr_log_mat_image(
+    [[maybe_unused]] std::string path,
+    [[maybe_unused]] const cv::Mat img,
+    [[maybe_unused]] rerun::ColorModel color_model,
+    [[maybe_unused]] const rerun::RecordingStream& rec,
+    [[maybe_unused]] std::string tag = ""
+) {}
+#else
 void rr_log_mat_image(
     std::string path,
     cv::Mat img,
     rerun::ColorModel color_model,
     const rerun::RecordingStream& rec,
-    std::string tag
+    std::string tag = ""
 );
+#endif
 
 void rr_log_keypoints_image(
     std::string path,
